@@ -46,6 +46,8 @@ Turn a video file, URL, or raw byte array into a crisp thumbnail — as a file o
 | 🪟 Windows | ✅ | ✅ | ⛔️ |
 | 🌐 Web | ⛔️ | ⛔️ | ✅ |
 
+**iOS / macOS**: iOS and macOS share a single native implementation under `darwin/`, integrable via either CocoaPods or Swift Package Manager. Minimum versions: iOS 13.0+, macOS 10.15+.
+
 ## 📦 Installation
 
 Add `video_thumb_kit` to your `pubspec.yaml`:
@@ -143,7 +145,6 @@ Generates a thumbnail from a raw video byte array — **Web only**. Returns a `U
 
 ## 🪟 Windows notes
 
-- Uses a native `MethodChannel` implementation — the same API contract as Android/iOS/macOS
 - Thumbnail extraction uses **Media Foundation**; image encoding uses **WIC**
 - `ImageFormat.webp` currently falls back to PNG for compatibility
 - If `thumbnailPath` is omitted, output is written to the OS temp directory

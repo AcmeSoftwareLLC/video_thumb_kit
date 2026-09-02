@@ -1,0 +1,53 @@
+name: video_thumb_kit
+description: A fast, cross-platform Flutter plugin for generating video
+  thumbnails from files, URLs, and byte arrays, with multiple image formats
+  and full size, quality, and timestamp customization.
+
+version: 1.0.0
+
+homepage: https://github.com/AcmeSoftwareLLC/video_thumb_kit
+repository: https://github.com/AcmeSoftwareLLC/video_thumb_kit
+issue_tracker: https://github.com/AcmeSoftwareLLC/video_thumb_kit/issues
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  flutter_web_plugins:
+    sdk: flutter
+
+  plugin_platform_interface: ^2.1.8
+  web: ^1.1.1
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
+
+topics:
+  - video
+  - thumbnail
+  - flutter-plugin
+  - cross-platform
+  - image-processing
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.acmesoftware.video_thumb_kit
+        pluginClass: VideoThumbKitPlugin
+      ios:
+        pluginClass: VideoThumbKitPlugin
+      macos:
+        pluginClass: VideoThumbKitPlugin
+      windows:
+        pluginClass: VideoThumbKitPluginCApi
+      web:
+        pluginClass: VideoThumbKitWeb
+        fileName: video_thumb_kit_web.dart
+  uses-material-design: false

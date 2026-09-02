@@ -1,0 +1,64 @@
+# Files and directories created by pub
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+.pub-cache/
+.pub/
+
+# IDE files
+*.iml
+*.ipr
+*.iws
+.idea/
+.vscode/
+android/.idea/
+ios/.idea/
+macos/.idea/
+
+# macOS system files
+.DS_Store
+
+# Environment files
+.env
+.env*
+
+# Lock file (for packages usually ignored)
+pubspec.lock
+
+# Documentation output
+doc/api/
+
+# Generated JavaScript files
+*.dart.js
+*.info.json
+*.js_
+*.js.deps
+*.js.map
+
+# Flutter ephemeral/generated folders
+ios/.symlinks/
+ios/Flutter/ephemeral/
+
+macos/Flutter/ephemeral/
+macos/Flutter/GeneratedPluginRegistrant.swift
+
+linux/flutter/ephemeral/
+
+windows/flutter/ephemeral/
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugin_registrant.h
+windows/flutter/generated_plugins.cmake
+
+android/local.properties
+android/.gradle/
+android/captures/
+
+# Plugin symlinks
+windows/flutter/ephemeral/.plugin_symlinks/
+linux/flutter/ephemeral/.plugin_symlinks/
+macos/Flutter/ephemeral/.plugin_symlinks/
+
+# Logs
+*.log

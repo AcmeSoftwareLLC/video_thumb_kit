@@ -1,0 +1,11 @@
+.dart_tool/
+.vscode/
+.idea/
+android/.idea/
+build/
+.DS_Store
+*.iml
+ios/.symlinks/
+macos/Flutter/ephemeral/
+windows/flutter/ephemeral/
+linux/flutter/ephemeral/

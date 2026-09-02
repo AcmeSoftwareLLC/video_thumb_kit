@@ -6,6 +6,7 @@ set(PLUGIN_NAME "video_thumb_kit_plugin")
 add_library(${PLUGIN_NAME} SHARED
   "video_thumb_kit_plugin.cpp"
   "video_thumb_kit_plugin_c_api.cpp"
+  "messages.g.cpp"
 )
 
 apply_standard_settings(${PLUGIN_NAME})

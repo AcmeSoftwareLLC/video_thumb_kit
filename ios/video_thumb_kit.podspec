@@ -20,6 +20,7 @@ A new flutter plugin project.
   s.dependency 'Flutter'
   s.dependency 'libwebp'
 
-  s.ios.deployment_target = '8.0'
+  s.ios.deployment_target = '13.0'
+  s.swift_version = '5.0'
 end
 

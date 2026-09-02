@@ -3,96 +3,77 @@ import Cocoa
 import FlutterMacOS
 import QuickLookThumbnailing
 
-public class VideoThumbKitPlugin: NSObject, FlutterPlugin {
+public class VideoThumbKitPlugin: NSObject, FlutterPlugin, VideoThumbKitHostApi {
   public static func register(with registrar: FlutterPluginRegistrar) {
-    let channel = FlutterMethodChannel(
-      name: "video_thumb_kit",
-      binaryMessenger: registrar.messenger)
     let instance = VideoThumbKitPlugin()
-    registrar.addMethodCallDelegate(instance, channel: channel)
+    VideoThumbKitHostApiSetup.setUp(binaryMessenger: registrar.messenger, api: instance)
   }
 
-  public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-    guard let args = call.arguments as? [String: Any] else {
-      result(FlutterError(code: "invalid_arguments", message: "Expected map arguments", details: nil))
-      return
+  func generateThumbnailData(request: ThumbnailRequest) async throws -> FlutterStandardTypedData? {
+    let data = try await Self.performInBackground {
+      try Self.buildThumbnail(request: request)
     }
+    return FlutterStandardTypedData(bytes: data)
+  }
 
-    guard let video = args["video"] as? String else {
-      result(FlutterError(code: "invalid_video", message: "Missing video path", details: nil))
-      return
+  func generateThumbnailFile(request: ThumbnailRequest) async throws -> String? {
+    try await Self.performInBackground {
+      let data = try Self.buildThumbnail(request: request)
+      let outputPath = try Self.resolveOutputPath(
+        originalVideo: request.video,
+        requestedPath: request.path,
+        format: request.imageFormat.rawValue)
+      try data.write(to: URL(fileURLWithPath: outputPath), options: .atomic)
+      return outputPath
     }
+  }
 
-    let headers = args["headers"] as? [String: String]
-    let path = args["path"] as? String
-    let format = (args["format"] as? NSNumber)?.intValue ?? 0
-    let maxh = (args["maxh"] as? NSNumber)?.intValue ?? 0
-    let maxw = (args["maxw"] as? NSNumber)?.intValue ?? 0
-    let timeMs = (args["timeMs"] as? NSNumber)?.intValue ?? 0
-    let quality = (args["quality"] as? NSNumber)?.intValue ?? 10
+  private static func performInBackground<T>(_ work: @escaping () throws -> T) async throws -> T {
+    try await withCheckedThrowingContinuation { continuation in
+      DispatchQueue.global(qos: .userInitiated).async {
+        do {
+          continuation.resume(returning: try work())
+        } catch let error as PigeonError {
+          continuation.resume(throwing: error)
+        } catch {
+          continuation.resume(
+            throwing: PigeonError(code: "thumbnail_error", message: error.localizedDescription, details: nil))
+        }
+      }
+    }
+  }
 
+  private static func buildThumbnail(request: ThumbnailRequest) throws -> Data {
     let url: URL
-    if video.hasPrefix("file://") {
-      url = URL(fileURLWithPath: String(video.dropFirst(7)))
-    } else if video.hasPrefix("/") {
-      url = URL(fileURLWithPath: video)
+    if request.video.hasPrefix("file://") {
+      url = URL(fileURLWithPath: String(request.video.dropFirst(7)))
+    } else if request.video.hasPrefix("/") {
+      url = URL(fileURLWithPath: request.video)
     } else {
-      guard let remoteURL = URL(string: video) else {
-        result(FlutterError(code: "invalid_url", message: "Invalid video URL", details: nil))
-        return
+      guard let remoteURL = URL(string: request.video) else {
+        throw PigeonError(code: "invalid_url", message: "Invalid video URL", details: nil)
       }
       url = remoteURL
     }
 
-    DispatchQueue.global(qos: .userInitiated).async {
-      var didAccessSecurityScopedResource = false
-      if url.isFileURL {
-        didAccessSecurityScopedResource = url.startAccessingSecurityScopedResource()
-      }
-      defer {
-        if didAccessSecurityScopedResource {
-          url.stopAccessingSecurityScopedResource()
-        }
-      }
-
-      switch call.method {
-      case "data":
-        do {
-          let data = try Self.generateThumbnail(
-            url: url,
-            headers: headers,
-            format: format,
-            maxHeight: maxh,
-            maxWidth: maxw,
-            timeMs: timeMs,
-            quality: quality)
-          result(FlutterStandardTypedData(bytes: data))
-        } catch {
-          result(FlutterError(code: "thumbnail_error", message: error.localizedDescription, details: nil))
-        }
-      case "file":
-        do {
-          let data = try Self.generateThumbnail(
-            url: url,
-            headers: headers,
-            format: format,
-            maxHeight: maxh,
-            maxWidth: maxw,
-            timeMs: timeMs,
-            quality: quality)
-          let outputPath = try Self.resolveOutputPath(
-            originalVideo: video,
-            requestedPath: path,
-            format: format)
-          try data.write(to: URL(fileURLWithPath: outputPath), options: .atomic)
-          result(outputPath)
-        } catch {
-          result(FlutterError(code: "thumbnail_error", message: error.localizedDescription, details: nil))
-        }
-      default:
-        result(FlutterMethodNotImplemented)
+    var didAccessSecurityScopedResource = false
+    if url.isFileURL {
+      didAccessSecurityScopedResource = url.startAccessingSecurityScopedResource()
+    }
+    defer {
+      if didAccessSecurityScopedResource {
+        url.stopAccessingSecurityScopedResource()
       }
     }
+
+    return try generateThumbnail(
+      url: url,
+      headers: request.headers,
+      format: request.imageFormat.rawValue,
+      maxHeight: Int(request.maxHeight),
+      maxWidth: Int(request.maxWidth),
+      timeMs: Int(request.timeMs),
+      quality: Int(request.quality))
   }
 
   private static func resolveOutputPath(

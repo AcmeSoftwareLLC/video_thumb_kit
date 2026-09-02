@@ -1,42 +1,44 @@
-import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:video_thumb_kit/enum.dart';
+import 'package:video_thumb_kit/src/messages.g.dart' as messages;
 import 'package:video_thumb_kit/video_thumb_kit_method_channel.dart';
 
-void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+class _FakeHostApi extends messages.VideoThumbKitHostApi {
+  messages.ThumbnailRequest? lastRequest;
+  String? fileResult = '/tmp/thumb.png';
+  Uint8List? dataResult = Uint8List.fromList(<int>[1, 2, 3]);
 
-  const channel = MethodChannel('video_thumb_kit');
+  @override
+  Future<String?> generateThumbnailFile(messages.ThumbnailRequest request) async {
+    lastRequest = request;
+    return fileResult;
+  }
+
+  @override
+  Future<Uint8List?> generateThumbnailData(messages.ThumbnailRequest request) async {
+    lastRequest = request;
+    return dataResult;
+  }
+}
+
+void main() {
+  late _FakeHostApi hostApi;
   late MethodChannelVideoThumbKit plugin;
 
-  MethodCall? lastMethodCall;
-
   setUp(() {
-    plugin = MethodChannelVideoThumbKit();
-    lastMethodCall = null;
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (methodCall) async {
-      lastMethodCall = methodCall;
-      if (methodCall.method == 'file') {
-        return '/tmp/thumb.png';
-      }
-      return Uint8List.fromList(<int>[1, 2, 3]);
-    });
-  });
-
-  tearDown(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, null);
+    hostApi = _FakeHostApi();
+    plugin = MethodChannelVideoThumbKit(hostApi: hostApi);
   });
 
   group('MethodChannelVideoThumbKit.thumbnailFile', () {
-    test('returns null and skips channel for empty video path', () async {
+    test('returns null and skips the host API for empty video path', () async {
       final result = await plugin.thumbnailFile(video: '');
       expect(result, isNull);
-      expect(lastMethodCall, isNull);
+      expect(hostApi.lastRequest, isNull);
     });
 
-    test('sends correct method and arguments', () async {
+    test('sends correct request', () async {
       final headers = <String, String>{'Authorization': 'Bearer token'};
       final result = await plugin.thumbnailFile(
         video: '/video.mp4',
@@ -50,18 +52,16 @@ void main() {
       );
 
       expect(result, '/tmp/thumb.png');
-      expect(lastMethodCall, isNotNull);
-      expect(lastMethodCall!.method, 'file');
-      expect(lastMethodCall!.arguments, <String, dynamic>{
-        'video': '/video.mp4',
-        'headers': headers,
-        'path': '/tmp/out.png',
-        'format': ImageFormat.webp.index,
-        'maxh': 200,
-        'maxw': 300,
-        'timeMs': 1500,
-        'quality': 90,
-      });
+      final request = hostApi.lastRequest;
+      expect(request, isNotNull);
+      expect(request!.video, '/video.mp4');
+      expect(request.headers, headers);
+      expect(request.path, '/tmp/out.png');
+      expect(request.imageFormat, messages.ImageFormat.webp);
+      expect(request.maxHeight, 200);
+      expect(request.maxWidth, 300);
+      expect(request.timeMs, 1500);
+      expect(request.quality, 90);
     });
   });
 
@@ -70,7 +70,7 @@ void main() {
       expect(() => plugin.thumbnailData(video: ''), throwsAssertionError);
     });
 
-    test('sends correct method and arguments and returns bytes', () async {
+    test('sends correct request and returns bytes', () async {
       final headers = <String, String>{'X-Header': 'value'};
       final result = await plugin.thumbnailData(
         video: '/video.mov',
@@ -83,17 +83,16 @@ void main() {
       );
 
       expect(result, Uint8List.fromList(<int>[1, 2, 3]));
-      expect(lastMethodCall, isNotNull);
-      expect(lastMethodCall!.method, 'data');
-      expect(lastMethodCall!.arguments, <String, dynamic>{
-        'video': '/video.mov',
-        'headers': headers,
-        'format': ImageFormat.jpeg.index,
-        'maxh': 100,
-        'maxw': 120,
-        'timeMs': 250,
-        'quality': 70,
-      });
+      final request = hostApi.lastRequest;
+      expect(request, isNotNull);
+      expect(request!.video, '/video.mov');
+      expect(request.headers, headers);
+      expect(request.path, isNull);
+      expect(request.imageFormat, messages.ImageFormat.jpeg);
+      expect(request.maxHeight, 100);
+      expect(request.maxWidth, 120);
+      expect(request.timeMs, 250);
+      expect(request.quality, 70);
     });
   });
 }

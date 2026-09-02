@@ -1,14 +1,21 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:video_thumb_kit/enum.dart';
+import 'package:video_thumb_kit/src/messages.g.dart' as messages;
 import 'package:video_thumb_kit/video_thumb_kit_platform_interface.dart';
 
-/// An implementation of [VideoThumbKitPlatform] that uses method channels.
-class MethodChannelVideoThumbKit
-    extends VideoThumbKitPlatform {
-  /// The method channel used to interact with the native platform.
+/// An implementation of [VideoThumbKitPlatform] that uses a Pigeon-generated
+/// host API.
+class MethodChannelVideoThumbKit extends VideoThumbKitPlatform {
+  MethodChannelVideoThumbKit({
+    @visibleForTesting messages.VideoThumbKitHostApi? hostApi,
+  }) : hostApi = hostApi ?? messages.VideoThumbKitHostApi();
+
+  /// The host API used to interact with the native platform.
   @visibleForTesting
-  final methodChannel = const MethodChannel('video_thumb_kit');
+  final messages.VideoThumbKitHostApi hostApi;
+
+  static messages.ImageFormat _toMessageFormat(ImageFormat imageFormat) =>
+      messages.ImageFormat.values[imageFormat.index];
 
   @override
   Future<String?> thumbnailFile(
@@ -21,17 +28,17 @@ class MethodChannelVideoThumbKit
       int timeMs = 0,
       int quality = 10}) async {
     if (video.isEmpty) return null;
-    final reqMap = <String, dynamic>{
-      'video': video,
-      'headers': headers,
-      'path': thumbnailPath,
-      'format': imageFormat.index,
-      'maxh': maxHeight,
-      'maxw': maxWidth,
-      'timeMs': timeMs,
-      'quality': quality
-    };
-    return await methodChannel.invokeMethod('file', reqMap);
+    final request = messages.ThumbnailRequest(
+      video: video,
+      headers: headers,
+      path: thumbnailPath,
+      imageFormat: _toMessageFormat(imageFormat),
+      maxHeight: maxHeight,
+      maxWidth: maxWidth,
+      timeMs: timeMs,
+      quality: quality,
+    );
+    return await hostApi.generateThumbnailFile(request);
   }
 
   @override
@@ -45,15 +52,15 @@ class MethodChannelVideoThumbKit
     int quality = 10,
   }) async {
     assert(video.isNotEmpty);
-    final reqMap = <String, dynamic>{
-      'video': video,
-      'headers': headers,
-      'format': imageFormat.index,
-      'maxh': maxHeight,
-      'maxw': maxWidth,
-      'timeMs': timeMs,
-      'quality': quality,
-    };
-    return await methodChannel.invokeMethod('data', reqMap);
+    final request = messages.ThumbnailRequest(
+      video: video,
+      headers: headers,
+      imageFormat: _toMessageFormat(imageFormat),
+      maxHeight: maxHeight,
+      maxWidth: maxWidth,
+      timeMs: timeMs,
+      quality: quality,
+    );
+    return await hostApi.generateThumbnailData(request);
   }
 }

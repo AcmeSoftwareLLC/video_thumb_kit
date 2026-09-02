@@ -1,8 +1,6 @@
 #include "video_thumb_kit_plugin.h"
 
-#include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
-#include <flutter/standard_method_codec.h>
 
 #include <mfapi.h>
 #include <mfidl.h>
@@ -21,6 +19,7 @@
 #include <cmath>
 #include <cstdint>
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <sstream>
@@ -38,42 +37,12 @@ namespace video_thumb_kit {
 
 namespace {
 
-using flutter::EncodableMap;
-using flutter::EncodableValue;
 using Microsoft::WRL::ComPtr;
-
-constexpr wchar_t kChannelName[] = L"video_thumb_kit";
 
 std::string HResultToString(HRESULT hr) {
   std::ostringstream stream;
   stream << "HRESULT 0x" << std::hex << static_cast<unsigned long>(hr);
   return stream.str();
-}
-
-std::optional<std::string> GetStringArg(const EncodableMap& args, const char* key) {
-  const auto it = args.find(EncodableValue(key));
-  if (it == args.end() || it->second.IsNull()) {
-    return std::nullopt;
-  }
-  const auto* value = std::get_if<std::string>(&it->second);
-  if (value == nullptr) {
-    return std::nullopt;
-  }
-  return *value;
-}
-
-int64_t GetIntArg(const EncodableMap& args, const char* key, int64_t fallback) {
-  const auto it = args.find(EncodableValue(key));
-  if (it == args.end() || it->second.IsNull()) {
-    return fallback;
-  }
-  if (const auto* v = std::get_if<int32_t>(&it->second)) {
-    return *v;
-  }
-  if (const auto* v = std::get_if<int64_t>(&it->second)) {
-    return *v;
-  }
-  return fallback;
 }
 
 std::wstring Utf8ToWide(const std::string& utf8) {
@@ -127,7 +96,7 @@ std::wstring OutputExtension(int format) {
   }
 }
 
-std::optional<std::vector<uint8_t>> GenerateThumbnailData(
+std::optional<std::vector<uint8_t>> GenerateThumbnailBytes(
     const std::wstring& video_path,
     int format,
     int max_height,
@@ -425,69 +394,66 @@ VideoThumbKitPlugin::VideoThumbKitPlugin() { MFStartup(MF_VERSION); }
 VideoThumbKitPlugin::~VideoThumbKitPlugin() { MFShutdown(); }
 
 void VideoThumbKitPlugin::RegisterWithRegistrar(flutter::PluginRegistrarWindows* registrar) {
-  auto channel = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-      registrar->messenger(), "video_thumb_kit", &flutter::StandardMethodCodec::GetInstance());
-
   auto plugin = std::make_unique<VideoThumbKitPlugin>();
 
-  channel->SetMethodCallHandler(
-      [plugin_pointer = plugin.get()](const auto& call, auto result) { plugin_pointer->HandleMethodCall(call, std::move(result)); });
+  VideoThumbKitHostApi::SetUp(registrar->messenger(), plugin.get());
 
   registrar->AddPlugin(std::move(plugin));
 }
 
-void VideoThumbKitPlugin::HandleMethodCall(
-    const flutter::MethodCall<flutter::EncodableValue>& method_call,
-    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  if (method_call.arguments() == nullptr || !std::holds_alternative<EncodableMap>(*method_call.arguments())) {
-    result->Error("invalid_arguments", "Expected a map for method arguments.");
-    return;
-  }
-
-  const auto& args = std::get<EncodableMap>(*method_call.arguments());
-  const auto video_arg = GetStringArg(args, "video");
-  if (!video_arg.has_value() || video_arg->empty()) {
-    result->Error("invalid_video", "Expected a non-empty video path.");
-    return;
-  }
-
-  const int format = static_cast<int>(GetIntArg(args, "format", 0));
-  const int maxh = static_cast<int>(GetIntArg(args, "maxh", 0));
-  const int maxw = static_cast<int>(GetIntArg(args, "maxw", 0));
-  const int time_ms = static_cast<int>(GetIntArg(args, "timeMs", 0));
-  const int quality = static_cast<int>(GetIntArg(args, "quality", 10));
-  const auto path_arg = GetStringArg(args, "path");
+void VideoThumbKitPlugin::GenerateThumbnailFile(
+    const ThumbnailRequest& request,
+    std::function<void(ErrorOr<std::optional<std::string>> reply)> result) {
+  const std::wstring video_path = Utf8ToWide(request.video());
+  const int format = static_cast<int>(request.image_format());
+  const int maxh = static_cast<int>(request.max_height());
+  const int maxw = static_cast<int>(request.max_width());
+  const int time_ms = static_cast<int>(request.time_ms());
+  const int quality = static_cast<int>(request.quality());
 
   std::string error_message;
   const auto bytes =
-      GenerateThumbnailData(Utf8ToWide(*video_arg), format, maxh, maxw, time_ms, quality, &error_message);
+      GenerateThumbnailBytes(video_path, format, maxh, maxw, time_ms, quality, &error_message);
   if (!bytes.has_value()) {
-    result->Error("thumbnail_error", error_message);
+    result(FlutterError("thumbnail_error", error_message));
     return;
   }
 
-  if (method_call.method_name().compare("data") == 0) {
-    result->Success(EncodableValue(*bytes));
+  const std::optional<std::string> path_arg =
+      request.path() != nullptr ? std::optional<std::string>(*request.path()) : std::nullopt;
+  const std::wstring output_path = BuildOutputPath(video_path, path_arg, format);
+  std::error_code ec;
+  std::filesystem::create_directories(std::filesystem::path(output_path).parent_path(), ec);
+  FILE* file = nullptr;
+  _wfopen_s(&file, output_path.c_str(), L"wb");
+  if (file == nullptr) {
+    result(FlutterError("thumbnail_error", "Cannot open output file for writing."));
+    return;
+  }
+  fwrite(bytes->data(), sizeof(uint8_t), bytes->size(), file);
+  fclose(file);
+  result(std::optional<std::string>(WideToUtf8(output_path)));
+}
+
+void VideoThumbKitPlugin::GenerateThumbnailData(
+    const ThumbnailRequest& request,
+    std::function<void(ErrorOr<std::optional<std::vector<uint8_t>>> reply)> result) {
+  const std::wstring video_path = Utf8ToWide(request.video());
+  const int format = static_cast<int>(request.image_format());
+  const int maxh = static_cast<int>(request.max_height());
+  const int maxw = static_cast<int>(request.max_width());
+  const int time_ms = static_cast<int>(request.time_ms());
+  const int quality = static_cast<int>(request.quality());
+
+  std::string error_message;
+  const auto bytes =
+      GenerateThumbnailBytes(video_path, format, maxh, maxw, time_ms, quality, &error_message);
+  if (!bytes.has_value()) {
+    result(FlutterError("thumbnail_error", error_message));
     return;
   }
 
-  if (method_call.method_name().compare("file") == 0) {
-    const std::wstring output_path = BuildOutputPath(Utf8ToWide(*video_arg), path_arg, format);
-    std::error_code ec;
-    std::filesystem::create_directories(std::filesystem::path(output_path).parent_path(), ec);
-    FILE* file = nullptr;
-    _wfopen_s(&file, output_path.c_str(), L"wb");
-    if (file == nullptr) {
-      result->Error("thumbnail_error", "Cannot open output file for writing.");
-      return;
-    }
-    fwrite(bytes->data(), sizeof(uint8_t), bytes->size(), file);
-    fclose(file);
-    result->Success(EncodableValue(WideToUtf8(output_path)));
-    return;
-  }
-
-  result->NotImplemented();
+  result(std::optional<std::vector<uint8_t>>(*bytes));
 }
 
 }  // namespace video_thumb_kit

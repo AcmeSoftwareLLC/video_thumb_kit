@@ -1,5 +1,16 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath("com.android.tools.build:gradle:9.3.2")
+    }
+}
+
 plugins {
-    id("com.android.library") version "9.0.1"
+    id("com.android.library")
 }
 
 group = "com.acmesoftware.video_thumb_kit"
@@ -49,10 +60,10 @@ tasks.withType<JavaCompile> {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.mockito:mockito-core:5.0.0")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
 }
 
 kotlin {

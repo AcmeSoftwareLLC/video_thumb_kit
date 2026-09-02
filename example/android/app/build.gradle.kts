@@ -37,11 +37,11 @@ android {
         options.compilerArgs.addAll(listOf("-Xlint:deprecation", "-Xlint:unchecked", "-Werror"))
     }
 
-    lintOptions {
+    lint {
         checkReleaseBuilds = true
         abortOnError = true
         warningsAsErrors = true
-        disable("UnusedResources")
+        disable += "UnusedResources"
     }
 }
 

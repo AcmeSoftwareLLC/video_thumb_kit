@@ -33,15 +33,15 @@ class _MyAppState extends State<MyApp> {
     setState(() => isLoading = true);
     try {
       if (kIsWeb || Platform.isMacOS) {
-        final files = await FilePicker.platform.pickFiles();
+        final files = await FilePicker.pickFiles();
 
-        if (files != null && files.files.isNotEmpty) {
+        if (files.isNotEmpty) {
           if (kIsWeb) {
             thumbanilBytes = await VideoThumbKit.thumbnailDataWeb(
-              videoBytes: files.files.first.bytes ?? Uint8List(0),
+              videoBytes: await files.first.readAsBytes(),
             );
           } else {
-            final selectedPath = files.files.first.path ?? '';
+            final selectedPath = files.first.path ?? '';
             if (selectedPath.isNotEmpty) {
               thumbnail = await VideoThumbKit.thumbnailFile(
                 video: selectedPath,

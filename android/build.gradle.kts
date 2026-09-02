@@ -26,7 +26,7 @@ allprojects {
 android {
     namespace = "com.acmesoftware.video_thumb_kit"
 
-    compileSdk = 34
+    compileSdk = flutter.compileSdkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -34,7 +34,7 @@ android {
     }
 
     defaultConfig {
-        minSdk = 21
+        minSdk = flutter.minSdkVersion
     }
 
     lint {

@@ -1,9 +1,9 @@
 name: video_thumb_kit
-description: A fast, cross-platform Flutter plugin for generating video
-  thumbnails from files, URLs, and byte arrays, with multiple image formats
-  and full size, quality, and timestamp customization.
+description: Fast, cross-platform Flutter plugin for generating video
+  thumbnails from files, URLs, and byte arrays, with custom size, quality,
+  format, and timing.
 
-version: 1.0.0
+version: 1.0.1
 
 homepage: https://acmesoftware.com
 repository: https://github.com/AcmeSoftwareLLC/video_thumb_kit

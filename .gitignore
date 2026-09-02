@@ -54,6 +54,7 @@ windows/flutter/generated_plugins.cmake
 android/local.properties
 android/.gradle/
 android/captures/
+android/bin/
 
 # Plugin symlinks
 windows/flutter/ephemeral/.plugin_symlinks/

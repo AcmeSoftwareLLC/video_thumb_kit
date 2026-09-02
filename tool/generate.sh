@@ -4,5 +4,5 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-dart run pigeon --input pigeons/messages.dart --swift_out ios/Classes/Messages.g.swift
-dart run pigeon --input pigeons/messages.dart --swift_out macos/Classes/Messages.g.swift
+dart run pigeon --input pigeons/messages.dart \
+  --swift_out darwin/video_thumb_kit/Sources/video_thumb_kit/Messages.g.swift

@@ -18,8 +18,7 @@ export 'enum.dart';
 class VideoThumbKit {
   VideoThumbKit._(); // coverage:ignore-line
 
-  static VideoThumbKitPlatform get _instance =>
-      VideoThumbKitPlatform.instance;
+  static VideoThumbKitPlatform get _instance => VideoThumbKitPlatform.instance;
 
   /// Generates a thumbnail from a video file and saves it to a file.
   ///
@@ -49,17 +48,16 @@ class VideoThumbKit {
     int maxWidth = 0,
     int timeMs = 0,
     int quality = 10,
-  }) async =>
-      await _instance.thumbnailFile(
-        video: video,
-        thumbnailPath: thumbnailPath,
-        headers: headers,
-        imageFormat: imageFormat,
-        maxHeight: maxHeight,
-        maxWidth: maxWidth,
-        quality: quality,
-        timeMs: timeMs,
-      );
+  }) async => await _instance.thumbnailFile(
+    video: video,
+    thumbnailPath: thumbnailPath,
+    headers: headers,
+    imageFormat: imageFormat,
+    maxHeight: maxHeight,
+    maxWidth: maxWidth,
+    quality: quality,
+    timeMs: timeMs,
+  );
 
   /// Generates a thumbnail from a video file and returns the thumbnail data as a `Uint8List`.
   ///
@@ -80,16 +78,15 @@ class VideoThumbKit {
     int maxWidth = 0,
     int timeMs = 0,
     int quality = 10,
-  }) async =>
-      await _instance.thumbnailData(
-        video: video,
-        headers: headers,
-        imageFormat: imageFormat,
-        maxHeight: maxHeight,
-        maxWidth: maxWidth,
-        quality: quality,
-        timeMs: timeMs,
-      );
+  }) async => await _instance.thumbnailData(
+    video: video,
+    headers: headers,
+    imageFormat: imageFormat,
+    maxHeight: maxHeight,
+    maxWidth: maxWidth,
+    quality: quality,
+    timeMs: timeMs,
+  );
 
   /// Generates a thumbnail from a video byte array and returns the thumbnail data as a `Uint8List`.
   ///
@@ -102,9 +99,8 @@ class VideoThumbKit {
   static Future<Uint8List?> thumbnailDataWeb({
     required Uint8List videoBytes,
     num quality = 100,
-  }) async =>
-      await platform.VideoThumbKitWeb().thumbnailDataWeb(
-        videoBytes: videoBytes,
-        quality: quality,
-      );
+  }) async => await platform.VideoThumbKitWeb().thumbnailDataWeb(
+    videoBytes: videoBytes,
+    quality: quality,
+  );
 }

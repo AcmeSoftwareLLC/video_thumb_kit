@@ -10,13 +10,17 @@ class _FakeHostApi extends messages.VideoThumbKitHostApi {
   Uint8List? dataResult = Uint8List.fromList(<int>[1, 2, 3]);
 
   @override
-  Future<String?> generateThumbnailFile(messages.ThumbnailRequest request) async {
+  Future<String?> generateThumbnailFile(
+    messages.ThumbnailRequest request,
+  ) async {
     lastRequest = request;
     return fileResult;
   }
 
   @override
-  Future<Uint8List?> generateThumbnailData(messages.ThumbnailRequest request) async {
+  Future<Uint8List?> generateThumbnailData(
+    messages.ThumbnailRequest request,
+  ) async {
     lastRequest = request;
     return dataResult;
   }

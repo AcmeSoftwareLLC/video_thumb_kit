@@ -20,8 +20,10 @@ class VideoThumbKitWeb extends VideoThumbKitPlatform {
     required Uint8List videoBytes,
     num quality = 100,
   }) async {
-    assert(videoBytes.isNotEmpty,
-        'Error: Video byte array is empty. Please ensure the video file is loaded correctly.');
+    assert(
+      videoBytes.isNotEmpty,
+      'Error: Video byte array is empty. Please ensure the video file is loaded correctly.',
+    );
     var thumbnailBytes = Uint8List(0);
     try {
       final blob = web.Blob(
@@ -37,26 +39,23 @@ class VideoThumbKitWeb extends VideoThumbKitPlatform {
         ..style.display = 'none';
 
       videoElement.play();
-      return await Future.delayed(
-        const Duration(seconds: 1),
-        () async {
-          videoElement.pause();
-          final canvas = web.HTMLCanvasElement()
-            ..width = videoElement.videoWidth
-            ..height = videoElement.videoHeight;
-          final context =
-              canvas.getContext('2d')! as web.CanvasRenderingContext2D;
-          context.drawImage(videoElement, 0, 0);
-          final thumbnailUrl = canvas.toDataUrl('image/jpeg', quality);
-          web.URL.revokeObjectURL(url);
+      return await Future.delayed(const Duration(seconds: 1), () async {
+        videoElement.pause();
+        final canvas = web.HTMLCanvasElement()
+          ..width = videoElement.videoWidth
+          ..height = videoElement.videoHeight;
+        final context =
+            canvas.getContext('2d')! as web.CanvasRenderingContext2D;
+        context.drawImage(videoElement, 0, 0);
+        final thumbnailUrl = canvas.toDataUrl('image/jpeg', quality);
+        web.URL.revokeObjectURL(url);
 
-          // Convert data URL to bytes
-          final byteString = thumbnailUrl.split(',').last;
-          final bytes = base64.decode(byteString);
-          thumbnailBytes = Uint8List.fromList(bytes);
-          return thumbnailBytes;
-        },
-      );
+        // Convert data URL to bytes
+        final byteString = thumbnailUrl.split(',').last;
+        final bytes = base64.decode(byteString);
+        thumbnailBytes = Uint8List.fromList(bytes);
+        return thumbnailBytes;
+      });
     } catch (e) {
       throw Exception('Please Provide Valid Video Bytes as Uint8List: $e');
     }

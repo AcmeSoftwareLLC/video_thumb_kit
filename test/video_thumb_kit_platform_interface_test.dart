@@ -22,15 +22,13 @@ class ImplementsPlatform implements VideoThumbKitPlatform {
     int maxWidth = 0,
     int timeMs = 0,
     int quality = 10,
-  }) async =>
-      null;
+  }) async => null;
 
   @override
   Future<Uint8List?> thumbnailDataWeb({
     required Uint8List videoBytes,
     num quality = 100,
-  }) async =>
-      null;
+  }) async => null;
 
   @override
   Future<String?> thumbnailFile({
@@ -42,16 +40,12 @@ class ImplementsPlatform implements VideoThumbKitPlatform {
     int maxWidth = 0,
     int timeMs = 0,
     int quality = 10,
-  }) async =>
-      null;
+  }) async => null;
 }
 
 void main() {
   test('default instance is method channel implementation', () {
-    expect(
-      VideoThumbKitPlatform.instance,
-      isA<MethodChannelVideoThumbKit>(),
-    );
+    expect(VideoThumbKitPlatform.instance, isA<MethodChannelVideoThumbKit>());
   });
 
   test('allows setting a proper platform implementation', () {

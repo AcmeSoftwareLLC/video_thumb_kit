@@ -25,15 +25,16 @@ abstract class VideoThumbKitPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<String?> thumbnailFile(
-      {required String video,
-      Map<String, String>? headers,
-      String? thumbnailPath,
-      ImageFormat imageFormat = ImageFormat.png,
-      int maxHeight = 0,
-      int maxWidth = 0,
-      int timeMs = 0,
-      int quality = 10}) async {
+  Future<String?> thumbnailFile({
+    required String video,
+    Map<String, String>? headers,
+    String? thumbnailPath,
+    ImageFormat imageFormat = ImageFormat.png,
+    int maxHeight = 0,
+    int maxWidth = 0,
+    int timeMs = 0,
+    int quality = 10,
+  }) async {
     throw UnimplementedError('thumbnailFile() has not been implemented.');
   }
 

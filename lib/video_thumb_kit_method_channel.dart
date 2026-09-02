@@ -18,15 +18,16 @@ class MethodChannelVideoThumbKit extends VideoThumbKitPlatform {
       messages.ImageFormat.values[imageFormat.index];
 
   @override
-  Future<String?> thumbnailFile(
-      {required String video,
-      Map<String, String>? headers,
-      String? thumbnailPath,
-      ImageFormat imageFormat = ImageFormat.png,
-      int maxHeight = 0,
-      int maxWidth = 0,
-      int timeMs = 0,
-      int quality = 10}) async {
+  Future<String?> thumbnailFile({
+    required String video,
+    Map<String, String>? headers,
+    String? thumbnailPath,
+    ImageFormat imageFormat = ImageFormat.png,
+    int maxHeight = 0,
+    int maxWidth = 0,
+    int timeMs = 0,
+    int quality = 10,
+  }) async {
     if (video.isEmpty) return null;
     final request = messages.ThumbnailRequest(
       video: video,

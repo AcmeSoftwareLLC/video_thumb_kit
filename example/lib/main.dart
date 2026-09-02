@@ -73,9 +73,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       scaffoldMessengerKey: _scaffoldMessengerKey,
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Plugin example app'),
-        ),
+        appBar: AppBar(title: const Text('Plugin example app')),
         body: Center(
           child: isLoading
               ? const CircularProgressIndicator()
@@ -95,17 +93,14 @@ class _MyAppState extends State<MyApp> {
                       SizedBox(
                         height: MediaQuery.of(context).size.height * 0.5,
                         width: MediaQuery.of(context).size.width * 0.5,
-                        child: Image.file(
-                          File(thumbnail ?? ''),
-                        ),
+                        child: Image.file(File(thumbnail ?? '')),
                       ),
                     ] else if (thumbanilBytes != null) ...[
                       SizedBox(
                         height: MediaQuery.of(context).size.height * 0.5,
                         width: MediaQuery.of(context).size.width * 0.5,
-                        child: Image.memory(
-                        thumbanilBytes ?? Uint8List(0),
-                      )),
+                        child: Image.memory(thumbanilBytes ?? Uint8List(0)),
+                      ),
                     ],
                     if (thumbanilBytes != null || thumbnail != null) ...[
                       SizedBox(height: 10),
@@ -115,7 +110,7 @@ class _MyAppState extends State<MyApp> {
                         },
                         child: Text('Get Next Thumbnail'),
                       ),
-                    ]
+                    ],
                   ],
                 ),
         ),

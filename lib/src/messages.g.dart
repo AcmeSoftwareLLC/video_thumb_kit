@@ -10,9 +10,9 @@ import 'package:flutter/services.dart';
 import 'package:meta/meta.dart' show immutable, protected, visibleForTesting;
 
 Object? _extractReplyValueOrThrow(
-    List<Object?>? replyList,
-    String channelName, {
-    required bool isNullValid,
+  List<Object?>? replyList,
+  String channelName, {
+  required bool isNullValid,
 }) {
   if (replyList == null) {
     throw PlatformException(
@@ -46,8 +46,9 @@ bool _deepEquals(Object? a, Object? b) {
   }
   if (a is List && b is List) {
     return a.length == b.length &&
-        a.indexed
-            .every(((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]));
+        a.indexed.every(
+          ((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]),
+        );
   }
   if (a is Map && b is Map) {
     if (a.length != b.length) {
@@ -96,17 +97,12 @@ int _deepHash(Object? value) {
   return value.hashCode;
 }
 
-
 /// Wire-format image encoding for generated thumbnails.
 ///
 /// Member order must stay `jpeg, png, webp` to match the public
 /// `lib/enum.dart` `ImageFormat` and the raw `.index` values that native
 /// implementations previously switched on.
-enum ImageFormat {
-  jpeg,
-  png,
-  webp,
-}
+enum ImageFormat { jpeg, png, webp }
 
 class ThumbnailRequest {
   ThumbnailRequest({
@@ -150,7 +146,8 @@ class ThumbnailRequest {
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static ThumbnailRequest decode(Object result) {
     result as List<Object?>;
@@ -175,7 +172,14 @@ class ThumbnailRequest {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(video, other.video) && _deepEquals(headers, other.headers) && _deepEquals(path, other.path) && _deepEquals(imageFormat, other.imageFormat) && _deepEquals(maxHeight, other.maxHeight) && _deepEquals(maxWidth, other.maxWidth) && _deepEquals(timeMs, other.timeMs) && _deepEquals(quality, other.quality);
+    return _deepEquals(video, other.video) &&
+        _deepEquals(headers, other.headers) &&
+        _deepEquals(path, other.path) &&
+        _deepEquals(imageFormat, other.imageFormat) &&
+        _deepEquals(maxHeight, other.maxHeight) &&
+        _deepEquals(maxWidth, other.maxWidth) &&
+        _deepEquals(timeMs, other.timeMs) &&
+        _deepEquals(quality, other.quality);
   }
 
   @override
@@ -188,7 +192,6 @@ class ThumbnailRequest {
   }
 }
 
-
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
   @override
@@ -196,10 +199,10 @@ class _PigeonCodec extends StandardMessageCodec {
     if (value is int) {
       buffer.putUint8(4);
       buffer.putInt64(value);
-    }    else if (value is ImageFormat) {
+    } else if (value is ImageFormat) {
       buffer.putUint8(129);
       writeValue(buffer, value.index);
-    }    else if (value is ThumbnailRequest) {
+    } else if (value is ThumbnailRequest) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
     } else {
@@ -225,9 +228,13 @@ class VideoThumbKitHostApi {
   /// Constructor for [VideoThumbKitHostApi]. The [binaryMessenger] named argument is
   /// available for dependency injection. If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
-  VideoThumbKitHostApi({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
-      : pigeonVar_binaryMessenger = binaryMessenger,
-        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+  VideoThumbKitHostApi({
+    BinaryMessenger? binaryMessenger,
+    String messageChannelSuffix = '',
+  }) : pigeonVar_binaryMessenger = binaryMessenger,
+       pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty
+           ? '.$messageChannelSuffix'
+           : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
 
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
@@ -235,40 +242,44 @@ class VideoThumbKitHostApi {
   final String pigeonVar_messageChannelSuffix;
 
   Future<String?> generateThumbnailFile(ThumbnailRequest request) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.video_thumb_kit.VideoThumbKitHostApi.generateThumbnailFile$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.video_thumb_kit.VideoThumbKitHostApi.generateThumbnailFile$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[request]);
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
+      <Object?>[request],
+    );
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
     return pigeonVar_replyValue as String?;
   }
 
   Future<Uint8List?> generateThumbnailData(ThumbnailRequest request) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.video_thumb_kit.VideoThumbKitHostApi.generateThumbnailData$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.video_thumb_kit.VideoThumbKitHostApi.generateThumbnailData$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[request]);
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
+      <Object?>[request],
+    );
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
     return pigeonVar_replyValue as Uint8List?;
   }
 }

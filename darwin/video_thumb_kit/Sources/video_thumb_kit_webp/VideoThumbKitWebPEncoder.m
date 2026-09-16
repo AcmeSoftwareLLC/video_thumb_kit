@@ -57,9 +57,7 @@
   } else {
     NSLog(@"Sorry, don't support this CGImageAlphaInfo: %d", (int)binfo);
   }
-  CGDataProviderRelease(dataProvider);
   CFRelease(imageData);
-  CGColorSpaceRelease(colorSpace);
 
   if (ret_size == 0) {
     return nil;
